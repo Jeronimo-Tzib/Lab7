@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LAB 7 - Location & Weather</title>
     <style>
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f4f9;
@@ -18,17 +17,10 @@
             margin: 0;
         }
 
-
         h1 {
             font-weight: 300;
             margin-bottom: 20px;
             color: #2c3e50;
-        }
-
-        h2 {
-            font-weight: 200;
-            margin: 5px 0;
-            color: #34495e;
         }
 
         #results {
@@ -64,9 +56,8 @@
     </style>
 </head>
 <body>
-    <h1><b>LAB 7 - Location & Weather Information</b></h1>
-    <h2>With Basic Javascript API Knowledge I Can Find Out Your</h2>
-    <h2>Location & Weather Data</h2>
+
+    <h1>Location & Weather Data</h1>
     <div id="results"></div>
 
     <script>
@@ -82,27 +73,28 @@
             console.log(`${label}: ${value}`);
         }
 
-        //Fetch API call - Get Public IP address
+        // 1. Fetch API call - Get Public IP
         fetch('https://api.ipify.org?format=json')
             .then(response => response.json())
             .then(ipData => {
                 const publicIP = ipData.ip;
                 displayResult('Public IP Address', publicIP);
 
-                //Use the result of Call 1 (IP) to find Location
-                return fetch(`http://ip-api.com/json/${publicIP}`);
+                // 2. Get Location using IP (Switched to ipapi.co for HTTPS support)
+                return fetch(`https://ipapi.co/${publicIP}/json/`);
             })
             .then(response => response.json())
             .then(locationData => {
-                
-                displayResult('Location', `${locationData.city}, ${locationData.region}, ${locationData.country}`);
+                // Display Location Data
+                displayResult('Location', `${locationData.city}, ${locationData.region}, ${locationData.country_name}`);
 
-                const currentIP = locationData.query; 
-                const latitude = locationData.lat;
-                const longitude = locationData.lon;
+                // Capture data for next steps
+                const currentIP = locationData.ip;
+                // Note: This API uses 'latitude'/'longitude' instead of 'lat'/'lon'
+                const latitude = locationData.latitude;
+                const longitude = locationData.longitude;
 
-                //Use the result of Call 1 (IP) to find Weather
-                
+                // 3. Weather via IP (wttr.in supports HTTPS)
                 fetch(`https://wttr.in/${currentIP}?format=j1`)
                     .then(response => response.json())
                     .then(weatherDataIP => {
@@ -112,7 +104,7 @@
                     })
                     .catch(err => console.error('Error fetching IP weather:', err));
 
-                //Use the result of Call 2 (Location Data) to find Weather
+                // 4. Weather via Coordinates (Open-Meteo supports HTTPS)
                 fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
                     .then(response => response.json())
                     .then(weatherDataLoc => {
@@ -122,10 +114,9 @@
                     })
                     .catch(err => console.error('Error fetching Coord weather:', err));
             })
-            //Error Handling
             .catch(error => {
                 console.error('Error:', error);
-                displayResult('Error', 'Failed to fetch data.');
+                displayResult('Error', 'Failed to fetch data. Check console for details.');
             });
     </script>
 </body>
